@@ -1,0 +1,16 @@
+- name: Install wget and Plesk
+  hosts: plesk_hosts
+  become: true
+  tasks:
+    - name: Ensure wget is installed
+      apt:
+        name: wget
+        state: present
+        update_cache: yes
+
+    - name: Run Plesk one-click installer
+      shell: |
+        curl https://autoinstall.plesk.com/one-click-installer | sh || \
+        wget -O - https://autoinstall.plesk.com/one-click-installer | sh
+      args:
+        executable: /bin/bash
