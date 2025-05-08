@@ -1,0 +1,49 @@
+- name: Safe Plesk installer
+  hosts: plesk_hosts
+  become: true
+  vars:
+    plesk_installer_url: https://autoinstall.plesk.com/one-click-installer
+
+  tasks:
+    - name: Ensure wget is installed
+      apt:
+        name: wget
+        state: present
+        update_cache: yes
+
+    - name: Check if Plesk is already installed
+      command: plesk version
+      register: plesk_check
+      failed_when: false
+      changed_when: false
+
+    - name: Determine if Plesk is not installed
+      set_fact:
+        plesk_not_installed: "{{ plesk_check.rc != 0 }}"
+
+    - name: Download Plesk installer if not installed
+      get_url:
+        url: "{{ plesk_installer_url }}"
+        dest: /tmp/plesk-installer.sh
+        mode: '0755'
+      when: plesk_not_installed
+
+    - name: Run Plesk installer if not installed
+      command: /tmp/plesk-installer.sh
+      args:
+        chdir: /tmp
+      when: plesk_not_installed
+
+    - name: Confirm Plesk installation
+      command: plesk version
+      register: final_check
+      changed_when: false
+
+    - name: Determine if Plesk is still missing
+      set_fact:
+        plesk_still_missing: "{{ final_check.rc != 0 }}"
+
+    - name: Fail if Plesk is still not installed
+      fail:
+        msg: "Plesk installation failed or did not complete successfully."
+      when: plesk_still_missing
