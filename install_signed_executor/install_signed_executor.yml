@@ -22,7 +22,7 @@
     - name: Ensure user exists
       user:
         name: "{{ username }}"
-        shell: /usr/sbin/nologin
+        shell: /bin/bash
         create_home: yes
 
     - name: Ensure .ssh directory exists
