@@ -45,7 +45,7 @@
       authorized_key:
         user: "{{ username }}"
         key: "{{ backend_ssh_pubkey }}"
-        key_options: 'command="sudo /home/{{ username }}/{{ app_name }}", no-pty, no-port-forwarding, no-agent-forwarding, no-X11-forwarding'
+        key_options: 'command="sudo /home/{{ username }}/{{ app_name }}",no-pty,no-port-forwarding,no-agent-forwarding,no-X11-forwarding'
 
     - name: Init signed executor
       command: "/home/{{ username }}/{{ app_name }} init {{ backend_token_key_url }}"
