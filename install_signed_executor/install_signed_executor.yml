@@ -5,20 +5,20 @@
     username: secops
     app_name: secOpsDispatcher
     app_url: https://github.com/HossBigft/sysAdminToolboxBackendTokenExecutor/releases/latest/download/secOpsDispatcher
-    ssh_key_url: "CHANGE_THIS"
-    ssh_pubkey: "CHANGE_THIS"
+    backend_token_key_url: "CHANGE_THIS"
+    backend_ssh_pubkey: "CHANGE_THIS"
 
 
   tasks:
-    - name: Fail if ssh_key_url is not set
+    - name: Fail if backend_token_key_url is not set
       fail:
-        msg: "You must set 'ssh_key_url'"
-      when: ssh_key_url == "CHANGE_THIS"
+        msg: "You must set 'backend_token_key_url'"
+      when: backend_token_key_url == "CHANGE_THIS"
 
-    - name: Fail if ssh_pubkey is not set
+    - name: Fail if backend_ssh_pubkey is not set
       fail:
-        msg: "You must set 'ssh_pubkey'"
-      when: ssh_pubkey == "CHANGE_THIS"
+        msg: "You must set 'backend_ssh_pubkey'"
+      when: backend_ssh_pubkey == "CHANGE_THIS"
     - name: Ensure user exists
       user:
         name: "{{ username }}"
@@ -44,8 +44,8 @@
     - name: Add serverkit backend ssh key with restrictions
       authorized_key:
         user: "{{ username }}"
-        key: "{{ ssh_pubkey }}"
+        key: "{{ backend_ssh_pubkey }}"
         key_options: 'command="sudo /home/{{ username }}/{{ app_name }}", no-pty, no-port-forwarding, no-agent-forwarding, no-X11-forwarding'
 
     - name: Init signed executor
-      command: "/home/{{ username }}/{{ app_name }} init {{ ssh_key_url }}"
+      command: "/home/{{ username }}/{{ app_name }} init {{ backend_token_key_url }}"
