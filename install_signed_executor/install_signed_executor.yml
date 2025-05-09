@@ -1,0 +1,51 @@
+- name: Set up restricted automation user with dispatcher binary
+  hosts: backend_servers
+  become: yes
+  vars:
+    username: secops
+    app_name: secOpsDispatcher
+    app_url: https://github.com/HossBigft/sysAdminToolboxBackendTokenExecutor/releases/latest/download/secOpsDispatcher
+    ssh_key_url: "CHANGE_THIS"
+    ssh_pubkey: "CHANGE_THIS"
+
+
+  tasks:
+    - name: Fail if ssh_key_url is not set
+      fail:
+        msg: "You must set 'ssh_key_url'"
+      when: ssh_key_url == "CHANGE_THIS"
+
+    - name: Fail if ssh_pubkey is not set
+      fail:
+        msg: "You must set 'ssh_pubkey'"
+      when: ssh_pubkey == "CHANGE_THIS"
+    - name: Ensure user exists
+      user:
+        name: "{{ username }}"
+        shell: /usr/sbin/nologin
+        create_home: yes
+
+    - name: Ensure .ssh directory exists
+      file:
+        path: "/home/{{ username }}/.ssh"
+        state: directory
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: '0700'
+
+    - name: Download signed executor binary
+      get_url:
+        url: "{{ app_url }}"
+        dest: "/home/{{ username }}/{{ app_name }}"
+        mode: '0700'
+        owner: "{{ username }}"
+        group: "{{ username }}"
+
+    - name: Add serverkit backend ssh key with restrictions
+      authorized_key:
+        user: "{{ username }}"
+        key: "{{ ssh_pubkey }}"
+        key_options: 'command="sudo /home/{{ username }}/{{ app_name }}", no-pty, no-port-forwarding, no-agent-forwarding, no-X11-forwarding'
+
+    - name: Init signed executor
+      command: "/home/{{ username }}/{{ app_name }} init {{ ssh_key_url }}"
