@@ -5,13 +5,13 @@
     username: secops
     app_name: secOpsDispatcher
     app_url: https://github.com/HossBigft/sysAdminToolboxBackendTokenExecutor/releases/latest/download/secOpsDispatcher
-    backend_ssh_pubkey: "CHANGE_THIS"
+    backend_user_ssh_pubkey: "CHANGE_THIS"
 
   tasks:
-    - name: Fail if backend_ssh_pubkey is not set
+    - name: Fail if backend_user_ssh_pubkey is not set
       fail:
-        msg: "You must set 'backend_ssh_pubkey'"
-      when: backend_ssh_pubkey == "CHANGE_THIS"
+        msg: "You must set 'backend_user_ssh_pubkey'"
+      when: backend_user_ssh_pubkey == "CHANGE_THIS"
 
     - name: Ensure user exists
       user:
@@ -38,7 +38,7 @@
     - name: Add serverkit backend ssh key with restrictions
       authorized_key:
         user: "{{ username }}"
-        key: "{{ backend_ssh_pubkey }}"
+        key: "{{ backend_user_ssh_pubkey }}"
         key_options: 'command="sudo /home/{{ username }}/{{ app_name }}",no-pty,no-port-forwarding,no-agent-forwarding,no-X11-forwarding'
 
     - name: Init signed executor
