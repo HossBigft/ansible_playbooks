@@ -8,5 +8,5 @@ ln -s /home/mskla/projs/python/sysadmintoolboxfullstackOpen/test_token_key/pub.k
 ```
 
 ```bash
-ansible-playbook -i hosts.ini  install_signed_executor.yml -vvv
+ansible-playbook -i hosts.ini -e @vars.yml  install_dev_signed_executor.yml -vvv
 ```
