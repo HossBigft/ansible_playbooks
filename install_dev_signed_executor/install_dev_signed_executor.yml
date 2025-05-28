@@ -43,6 +43,11 @@
 
     - name: Init signed executor
       command: "/home/{{ username }}/{{ app_name }} init"
+      register: init_output
+
+    - name: Print signed executor response
+      debug:
+        var: init_output.stdout
 
     - name: Copy pub.key to .secOpsDispatcher
       copy:
