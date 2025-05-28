@@ -49,3 +49,8 @@
 
     - name: Init signed executor
       command: "/home/{{ username }}/{{ app_name }} init {{ backend_token_key_url }}"
+      register: init_output
+
+    - name: Print signed executor response
+      debug:
+        var: init_output.stdout
