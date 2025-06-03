@@ -6,7 +6,7 @@
 
   tasks:
     - name: Ensure wget is installed
-      apt:
+      yum:
         name: wget
         state: present
         update_cache: yes
