@@ -17,7 +17,7 @@
       user:
         name: "{{ username }}"
         shell: /bin/bash
-        group: wheel
+        groups: wheel
         create_home: yes
 
     - name: Ensure .ssh directory exists
