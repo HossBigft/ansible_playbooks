@@ -45,6 +45,7 @@
     - name: Add serverkit backend ssh key with restrictions
       authorized_key:
         user: "{{ username }}"
+        exclusive: true
         key: "{{ backend_user_ssh_pubkey }}"
         key_options: 'command="sudo /home/{{ username }}/{{ app_name }}",no-pty,no-port-forwarding,no-agent-forwarding,no-X11-forwarding'
 
