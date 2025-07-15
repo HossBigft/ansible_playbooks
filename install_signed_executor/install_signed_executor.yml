@@ -1,6 +1,7 @@
 - name: Set up restricted automation user with dispatcher binary
   hosts: backend_servers
   become: yes
+  strategy: free
   vars:
     username: secops
     app_name: secOpsDispatcher
@@ -41,6 +42,7 @@
         mode: '0700'
         owner: "{{ username }}"
         group: "{{ username }}"
+        force: true
 
     - name: Add serverkit backend ssh key with restrictions
       authorized_key:
@@ -56,3 +58,6 @@
     - name: Print signed executor response
       debug:
         var: init_output.stdout
+    - name: Success message
+      debug:
+        msg: "Setup complete on {{ inventory_hostname }}"
