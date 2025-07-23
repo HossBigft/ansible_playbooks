@@ -152,8 +152,8 @@ function postfix_parse(tag, ts, record)
     end
 
     -- Fallback: use dsn if smtp code is not available
-    if not state.success and state.dsn then
-        local major = tonumber(state.dsn:match("^(%d)"))
+    if not state.success and state.delivery_status_notification then
+        local major = tonumber(state.delivery_status_notification:match("^(%d)"))
         if major and major == 2 then
             state.success = true
         end
