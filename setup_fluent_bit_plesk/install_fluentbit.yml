@@ -17,7 +17,20 @@
     override_content: |
       [Service]
       LimitNOFILE=16384
+  
+  vars_files:
+    - vars/fluentbit.yml
 
+  pre_tasks:
+    - name: Assert required Fluent Bit variables are defined
+      assert:
+        that:
+          - fluentbit_opensearch_host is defined
+          - fluentbit_opensearch_port is defined
+          - fluentbit_opensearch_password is defined
+        fail_msg: |
+          One or more required Fluent Bit vars are missing.
+          Please set fluentbit_opensearch_host, fluentbit_opensearch_port, and fluentbit_opensearch_password.
   tasks:
 
     - name: Create Fluent Bit YUM repo
@@ -65,8 +78,36 @@
       systemd:
         daemon_reload: true
 
+
+    
+    - name: Copy Fluent Bit config structure to /etc/fluent-bit/
+      copy:
+        src: config/
+        dest: /etc/fluent-bit/
+        owner: root
+        group: root
+        mode: '0644'
+        directory_mode: '0755'
+      notify: Restart fluent-bit
+
+    - name: Deploy main fluent-bit.conf with variables
+    template:
+      src: config/fluent-bit.conf.j2
+      dest: /etc/fluent-bit/fluent-bit.conf
+      owner: root
+      group: root
+      mode: '0644'
+    notify: Restart fluent-bit
+
     - name: Enable and start fluent-bit
       systemd:
         name: fluent-bit
         enabled: true
         state: started
+
+        
+    handlers:
+      - name: Restart fluent-bit
+        systemd:
+          name: fluent-bit
+          state: restarted

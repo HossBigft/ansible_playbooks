@@ -1,0 +1,99 @@
+@INCLUDE conf/apache.conf
+@INCLUDE conf/nginx.conf
+@INCLUDE conf/postfix.conf
+@INCLUDE conf/dovecot.conf
+
+[SERVICE]
+    flush        1
+    daemon       Off
+    log_level    info
+
+    parsers_file parsers.conf
+    parsers_file parsers/dovecot.parser.conf
+    parsers_file parsers/postfix.parser.conf
+    parsers_file parsers/nginx.parser.conf
+    plugins_file plugins.conf
+
+    storage.metrics on
+
+[FILTER]
+    Name        modify
+    Match       *
+    Add         plesk_server  plesk_server
+
+[OUTPUT]
+    Name              opensearch
+    Match             apache.access*
+    Host              {{ fluentbit_opensearch_host }}
+    Port              {{ fluentbit_opensearch_port }}
+    HTTP_User         fluentbit
+    HTTP_Passwd       {{ fluentbit_opensearch_password }}
+    Suppress_Type_Name   On
+    Index             apache.access-%Y.%m.%d
+    TLS               On
+    tls.verify        Off
+
+[OUTPUT]
+    Name              opensearch
+    Match             apache.error
+    Host              {{ fluentbit_opensearch_host }}
+    Port              {{ fluentbit_opensearch_port }}
+    HTTP_User         fluentbit
+    HTTP_Passwd       {{ fluentbit_opensearch_password }}
+    Suppress_Type_Name   On
+    Index             apache.error-%Y.%m.%d
+    TLS               On
+    tls.verify        Off
+
+[OUTPUT]
+    Name              opensearch
+    Match             proxy.access*
+    Host              {{ fluentbit_opensearch_host }}
+    Port              {{ fluentbit_opensearch_port }}
+    HTTP_User         fluentbit
+    HTTP_Passwd       {{ fluentbit_opensearch_password }}
+    Suppress_Type_Name   On
+    Index             proxy.access-%Y.%m.%d
+    TLS               On
+    tls.verify        Off
+
+[OUTPUT]
+    Name              opensearch
+    Match             proxy.error
+    Host              {{ fluentbit_opensearch_host }}
+    Port              {{ fluentbit_opensearch_port }}
+    HTTP_User         fluentbit
+    HTTP_Passwd       {{ fluentbit_opensearch_password }}
+    Suppress_Type_Name   On
+    Index             proxy.error-%Y.%m.%d
+    TLS               On
+    tls.verify        Off
+
+[OUTPUT]
+    Name              opensearch
+    Match             postfix
+    Host              {{ fluentbit_opensearch_host }}
+    Port              {{ fluentbit_opensearch_port }}
+    HTTP_User         fluentbit
+    HTTP_Passwd       {{ fluentbit_opensearch_password }}
+    Suppress_Type_Name   On
+    Index             postfix-%Y.%m.%d
+    TLS               On
+    tls.verify        Off
+
+[OUTPUT]
+    Name              opensearch
+    Match             dovecot
+    Host              {{ fluentbit_opensearch_host }}
+    Port              {{ fluentbit_opensearch_port }}
+    HTTP_User         fluentbit
+    HTTP_Passwd       {{ fluentbit_opensearch_password }}
+    Suppress_Type_Name   On
+    Index             dovecot-%Y.%m.%d
+    TLS               On
+    tls.verify        Off
+
+# [OUTPUT]
+#     Name   stdout
+#     Match  *
+#     Format json_lines
