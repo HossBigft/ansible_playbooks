@@ -24,15 +24,57 @@ QUEUE_TTL_SEC = 300 -- Time to live for queued entries (5 minutes)
 
 -- Cleanup function
 function cleanup_queue_state(current_ts)
+    local current_time = timestamp_to_float(current_ts)
     for qid, state in pairs(queue_state) do
-        if state.ts and (current_ts - state.ts > QUEUE_TTL_SEC) then
+        if state.ts and (current_time - state.ts > QUEUE_TTL_SEC) then
             queue_state[qid] = nil
         end
     end
 end
 
+function parse_log_timestamp(timestamp_str)
+    -- Parse the postfix timestamp format: "Jul 30 17:11:10"
+    local month_map = {
+        Jan=1, Feb=2, Mar=3, Apr=4, May=5, Jun=6,
+        Jul=7, Aug=8, Sep=9, Oct=10, Nov=11, Dec=12
+    }
+    
+    local month_str, day, hour, min, sec = timestamp_str:match("(%w+)%s+(%d+)%s+(%d+):(%d+):(%d+)")
+    if not month_str then
+        return os.time() -- fallback
+    end
+    
+    local month = month_map[month_str]
+    if not month then
+        return os.time() -- fallback
+    end
+    
+    -- Use current year
+    local current_year = os.date("%Y")
+    
+    -- Create timestamp in local time
+    local timestamp = os.time({
+        year = current_year,
+        month = month,
+        day = tonumber(day),
+        hour = tonumber(hour),
+        min = tonumber(min),
+        sec = tonumber(sec)
+    })
+    
+    return timestamp
+end
+
 function timestamp_to_float(ts)
-    return ts[1] + ts[2] / 1e9
+    -- Handle both number and array timestamp formats
+    if type(ts) == "number" then
+        return ts
+    elseif type(ts) == "table" and ts[1] then
+        return ts[1] + (ts[2] or 0) / 1e9
+    else
+        -- Fallback to current time if timestamp format is unknown
+        return os.time()
+    end
 end
 
 local function detect_mail_stage_from_service(service_string)
@@ -58,7 +100,6 @@ local function detect_mail_stage_from_service(service_string)
     end
 end
 
-
 function postfix_parse(tag, ts, record)
     local qid = record["queue_id"]
     if not qid then
@@ -67,9 +108,13 @@ function postfix_parse(tag, ts, record)
 
     local msg = record["message"] or ""
     local svc = record["service"] or ""
+    
+    -- Parse the original timestamp from the log
+    local log_timestamp = record["timestamp"]
+    local parsed_ts = log_timestamp and parse_log_timestamp(log_timestamp) or timestamp_to_float(ts)
 
     local state = queue_state[qid] or {}
-    state.ts = ts -- Track timestamp for cleanup
+    state.ts = parsed_ts -- Store the correctly parsed timestamp
 
     -- Extract info
     if msg:match("client=") then
@@ -161,8 +206,12 @@ function postfix_parse(tag, ts, record)
     -- Emit when status is known
     if state.status then
         state.queue_id = qid
+        -- Use the parsed timestamp
+        state.ts = parsed_ts
+        state.date = parsed_ts
         queue_state[qid] = nil
         cleanup_queue_state(ts)
+        -- Return the timestamp as-is, let Fluent Bit handle it properly
         return 2, ts, state
     end
 
