@@ -18,6 +18,14 @@ function domain_from_email(email)
     return email:match("@(.+)")
 end
 
+-- Convert a local time table to a UTC timestamp
+function local_to_utc_timestamp(time_table)
+    time_table.isdst = false
+    local local_ts = os.time(time_table)
+    local utc_offset = os.difftime(os.time(), os.time(os.date("!*t")))
+    return local_ts - utc_offset
+end
+
 -- Global state
 queue_state = queue_state or {}
 QUEUE_TTL_SEC = 300 -- Time to live for queued entries (5 minutes)
@@ -38,22 +46,22 @@ function parse_log_timestamp(timestamp_str)
         Jan=1, Feb=2, Mar=3, Apr=4, May=5, Jun=6,
         Jul=7, Aug=8, Sep=9, Oct=10, Nov=11, Dec=12
     }
-    
+
     local month_str, day, hour, min, sec = timestamp_str:match("(%w+)%s+(%d+)%s+(%d+):(%d+):(%d+)")
     if not month_str then
         return os.time() -- fallback
     end
-    
+
     local month = month_map[month_str]
     if not month then
         return os.time() -- fallback
     end
-    
+
     -- Use current year
-    local current_year = os.date("%Y")
-    
-    -- Create timestamp in local time
-    local timestamp = os.time({
+    local current_year = tonumber(os.date("%Y"))
+
+    -- Create timestamp in UTC
+    local timestamp = local_to_utc_timestamp({
         year = current_year,
         month = month,
         day = tonumber(day),
@@ -61,7 +69,7 @@ function parse_log_timestamp(timestamp_str)
         min = tonumber(min),
         sec = tonumber(sec)
     })
-    
+
     return timestamp
 end
 
@@ -108,13 +116,13 @@ function postfix_parse(tag, ts, record)
 
     local msg = record["message"] or ""
     local svc = record["service"] or ""
-    
+
     -- Parse the original timestamp from the log
     local log_timestamp = record["timestamp"]
     local parsed_ts = log_timestamp and parse_log_timestamp(log_timestamp) or timestamp_to_float(ts)
 
     local state = queue_state[qid] or {}
-    state.ts = parsed_ts -- Store the correctly parsed timestamp
+    state.ts = parsed_ts -- Store the correctly parsed UTC timestamp
 
     -- Extract info
     if msg:match("client=") then
@@ -166,8 +174,8 @@ function postfix_parse(tag, ts, record)
             state.delay_delivery_s = parse_and_format_delay(d)
             state.total_delay_s =
                 parse_and_format_delay(
-                state.delay_queue_s + state.delay_connect_s + state.delay_transmit_s + state.delay_delivery_s
-            )
+                    state.delay_queue_s + state.delay_connect_s + state.delay_transmit_s + state.delay_delivery_s
+                )
         end
     elseif msg:match("delay=") then
         state.total_delay_s = parse_and_format_delay(msg:match("delay=([%d%.]+)"))
@@ -203,15 +211,14 @@ function postfix_parse(tag, ts, record)
             state.success = true
         end
     end
+
     -- Emit when status is known
     if state.status then
         state.queue_id = qid
-        -- Use the parsed timestamp
         state.ts = parsed_ts
         state.date = parsed_ts
         queue_state[qid] = nil
         cleanup_queue_state(ts)
-        -- Return the timestamp as-is, let Fluent Bit handle it properly
         return 2, ts, state
     end
 
