@@ -19,11 +19,9 @@ function domain_from_email(email)
 end
 
 -- Convert a local time table to a UTC timestamp
-function local_to_utc_timestamp(time_table)
-    time_table.isdst = false
-    local local_ts = os.time(time_table)
-    local utc_offset = os.difftime(os.time(), os.time(os.date("!*t")))
-    return local_ts - utc_offset
+function local_to_utc_timestamp(local_time_table)
+    local local_ts = os.time(local_time_table)
+    return local_ts
 end
 
 -- Global state
@@ -74,14 +72,12 @@ function parse_log_timestamp(timestamp_str)
 end
 
 function timestamp_to_float(ts)
-    -- Handle both number and array timestamp formats
     if type(ts) == "number" then
         return ts
     elseif type(ts) == "table" and ts[1] then
         return ts[1] + (ts[2] or 0) / 1e9
     else
-        -- Fallback to current time if timestamp format is unknown
-        return os.time()
+        return os.time(os.date("!*t"))
     end
 end
 
@@ -219,7 +215,7 @@ function postfix_parse(tag, ts, record)
         state.date = parsed_ts
         queue_state[qid] = nil
         cleanup_queue_state(ts)
-        return 2, ts, state
+        return 2, parsed_ts, state
     end
 
     queue_state[qid] = state
