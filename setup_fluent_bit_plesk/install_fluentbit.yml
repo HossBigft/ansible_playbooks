@@ -1,0 +1,72 @@
+---
+- name: Install and configure Fluent Bit
+  hosts: all
+  become: true
+
+  vars:
+    fluentbit_repo_file: /etc/yum.repos.d/fluent-bit.repo
+    fluentbit_repo_content: |
+      [fluent-bit]
+      name = Fluent Bit
+      baseurl = https://packages.fluentbit.io/centos/$releasever/
+      gpgcheck=1
+      gpgkey=https://packages.fluentbit.io/fluentbit.key
+      repo_gpgcheck=1
+      enabled=1
+    override_file: /etc/systemd/system/fluent-bit.service.d/override.conf
+    override_content: |
+      [Service]
+      LimitNOFILE=16384
+
+  tasks:
+
+    - name: Create Fluent Bit YUM repo
+      copy:
+        dest: "{{ fluentbit_repo_file }}"
+        content: "{{ fluentbit_repo_content }}"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Install Fluent Bit
+      yum:
+        name: fluent-bit
+        state: present
+
+    - name: Add Fluent Bit bin path to system-wide PATH
+      copy:
+        dest: /etc/profile.d/fluent-bit-path.sh
+        content: 'export PATH=$PATH:/opt/fluent-bit/bin'
+        mode: '0755'
+
+    - name: Create directory for Fluent Bit DB files
+      file:
+        path: /var/lib/fluent-bit
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Ensure systemd override directory exists
+      file:
+        path: /etc/systemd/system/fluent-bit.service.d
+        state: directory
+        mode: '0755'
+
+    - name: Set systemd override for Fluent Bit
+      copy:
+        dest: "{{ override_file }}"
+        content: "{{ override_content }}"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: true
+
+    - name: Enable and start fluent-bit
+      systemd:
+        name: fluent-bit
+        enabled: true
+        state: started
