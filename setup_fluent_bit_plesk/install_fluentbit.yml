@@ -85,14 +85,12 @@
         mode: '0644'
         
     - name: Copy Fluent Bit config structure to /etc/fluent-bit/
-      copy:
+      synchronize:
         src: config/
         dest: /etc/fluent-bit/
-        owner: root
-        group: root
-        mode: '0644'
-        directory_mode: '0755'
-        checksum: yes
+        archive: yes
+        recursive: yes
+        delete: no
       notify: Restart fluent-bit
 
     - name: Deploy main fluent-bit.conf 

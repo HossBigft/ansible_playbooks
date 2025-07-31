@@ -1,2 +1,3 @@
+# $SERVER ansible_host=$SSH_HOST
 [plesk_servers]
-centos8
+
