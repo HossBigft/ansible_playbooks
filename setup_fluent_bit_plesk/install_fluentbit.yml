@@ -20,7 +20,7 @@
   
   vars_files:
     - vars/fluentbit.yml
-    
+
   handlers:
     - name: Restart fluent-bit
       systemd:
@@ -92,6 +92,7 @@
         group: root
         mode: '0644'
         directory_mode: '0755'
+        checksum: yes
       notify: Restart fluent-bit
 
     - name: Deploy main fluent-bit.conf 
@@ -127,4 +128,33 @@
         enabled: true
         state: started
 
+    - name: Ensure fluent-bit service is running
+      systemd:
+        name: fluent-bit
+        state: started
+        enabled: true
         
+    - name: Check if fluent-bit is active
+      shell: systemctl is-active fluent-bit
+      register: fluentbit_status
+      changed_when: false
+      failed_when: fluentbit_status.stdout != "active"
+
+    - name: Check if fluent-bit is failed
+      shell: systemctl is-failed fluent-bit
+      register: fluentbit_failed
+      changed_when: false
+      failed_when: fluentbit_failed.stdout == "failed"
+
+    - name: Check OpenSearch accessibility 
+      uri:
+        url: "https://{{ fluentbit_opensearch_host }}:{{ fluentbit_opensearch_port }}/"
+        method: GET
+        user: fluentbit
+        password: "{{ fluentbit_opensearch_password }}"
+        validate_certs: no
+        return_content: yes
+        status_code: 
+          - 403
+          - 200  
+      register: opensearch_health
