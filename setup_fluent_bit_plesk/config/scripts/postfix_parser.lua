@@ -41,8 +41,18 @@ end
 function parse_log_timestamp(timestamp_str)
     -- Parse the postfix timestamp format: "Jul 30 17:11:10"
     local month_map = {
-        Jan=1, Feb=2, Mar=3, Apr=4, May=5, Jun=6,
-        Jul=7, Aug=8, Sep=9, Oct=10, Nov=11, Dec=12
+        Jan = 1,
+        Feb = 2,
+        Mar = 3,
+        Apr = 4,
+        May = 5,
+        Jun = 6,
+        Jul = 7,
+        Aug = 8,
+        Sep = 9,
+        Oct = 10,
+        Nov = 11,
+        Dec = 12
     }
 
     local month_str, day, hour, min, sec = timestamp_str:match("(%w+)%s+(%d+)%s+(%d+):(%d+):(%d+)")
@@ -88,10 +98,8 @@ local function detect_mail_stage_from_service(service_string)
 
     service_string = service_string:lower()
 
-    if
-        service_string:match("local") or service_string:match("pipe") or service_string:match("virtual") or
-            service_string:match("lmtp")
-     then
+    if service_string:match("local") or service_string:match("pipe") or service_string:match("virtual") or
+        service_string:match("lmtp") then
         return "final_delivery"
     elseif service_string:match("smtp") then
         return "relay"
@@ -118,8 +126,7 @@ function postfix_parse(tag, ts, record)
     local parsed_ts = log_timestamp and parse_log_timestamp(log_timestamp) or timestamp_to_float(ts)
 
     local state = queue_state[qid] or {}
-    state.ts = parsed_ts -- Store the correctly parsed UTC timestamp
-
+    state["@timestamp"] = os.date("!%Y-%m-%dT%H:%M:%S", parsed_ts)
     -- Extract info
     if msg:match("client=") then
         local ch, cip = msg:match("client=([^%[]+)%[([^%]]+)%]")
@@ -168,10 +175,8 @@ function postfix_parse(tag, ts, record)
             state.delay_connect_s = parse_and_format_delay(c)
             state.delay_transmit_s = parse_and_format_delay(t)
             state.delay_delivery_s = parse_and_format_delay(d)
-            state.total_delay_s =
-                parse_and_format_delay(
-                    state.delay_queue_s + state.delay_connect_s + state.delay_transmit_s + state.delay_delivery_s
-                )
+            state.total_delay_s = parse_and_format_delay(state.delay_queue_s + state.delay_connect_s +
+                                                             state.delay_transmit_s + state.delay_delivery_s)
         end
     elseif msg:match("delay=") then
         state.total_delay_s = parse_and_format_delay(msg:match("delay=([%d%.]+)"))
@@ -211,8 +216,6 @@ function postfix_parse(tag, ts, record)
     -- Emit when status is known
     if state.status then
         state.queue_id = qid
-        state.ts = parsed_ts
-        state.date = parsed_ts
         queue_state[qid] = nil
         cleanup_queue_state(ts)
         return 2, parsed_ts, state
