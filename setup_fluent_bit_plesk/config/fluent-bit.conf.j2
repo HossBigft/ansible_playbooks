@@ -50,7 +50,7 @@
     Match             proxy.access*
     Host              {{ fluentbit_opensearch_host }}
     Port              {{ fluentbit_opensearch_port }}
-    HTTP_User         fluentbit
+    HTTP_User         {{ fluentbit_opensearch_user }}
     HTTP_Passwd       {{ fluentbit_opensearch_password }}
     Suppress_Type_Name   On
     Index             proxy.access-%Y.%m.%d

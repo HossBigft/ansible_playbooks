@@ -1,0 +1,4 @@
+fluentbit_opensearch_host: "188.244.115.34"
+fluentbit_opensearch_port: "30920"
+fluentbit_opensearch_user: "fluentbit"
+fluentbit_opensearch_password: "Jahfi4fieDu0iediech2"

@@ -20,6 +20,15 @@
   
   vars_files:
     - vars/fluentbit.yml
+    
+  handlers:
+    - name: Restart fluent-bit
+      systemd:
+        name: fluent-bit
+        state: restarted
+          
+    - name: Reload CSF
+      command: csf -r
 
   pre_tasks:
     - name: Assert required Fluent Bit variables are defined
@@ -27,6 +36,7 @@
         that:
           - fluentbit_opensearch_host is defined
           - fluentbit_opensearch_port is defined
+          - fluentbit_opensearch_user is defined
           - fluentbit_opensearch_password is defined
         fail_msg: |
           One or more required Fluent Bit vars are missing.
@@ -118,12 +128,3 @@
         state: started
 
         
-    handlers:
-      - name: Restart fluent-bit
-        systemd:
-          name: fluent-bit
-          state: restarted
-          
-    handlers:
-    - name: Reload CSF
-      command: csf -r
