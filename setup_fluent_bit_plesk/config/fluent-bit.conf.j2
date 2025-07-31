@@ -19,7 +19,7 @@
 [FILTER]
     Name        modify
     Match       *
-    Add         plesk_server  plesk_server
+    Add         server  {{ inventory_hostname }}
 
 [OUTPUT]
     Name              opensearch
