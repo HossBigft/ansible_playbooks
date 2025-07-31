@@ -11,7 +11,7 @@
       baseurl = https://packages.fluentbit.io/centos/$releasever/
       gpgcheck=1
       gpgkey=https://packages.fluentbit.io/fluentbit.key
-      repo_gpgcheck=1
+      repo_gpgcheck=0
       enabled=1
     override_file: /etc/systemd/system/fluent-bit.service.d/override.conf
     override_content: |
@@ -42,7 +42,6 @@
           One or more required Fluent Bit vars are missing.
           Please set fluentbit_opensearch_host, fluentbit_opensearch_port, and fluentbit_opensearch_password.
   tasks:
-
     - name: Create Fluent Bit YUM repo
       copy:
         dest: "{{ fluentbit_repo_file }}"
