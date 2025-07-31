@@ -73,13 +73,7 @@
         owner: root
         group: root
         mode: '0644'
-
-    - name: Reload systemd daemon
-      systemd:
-        daemon_reload: true
-
-
-    
+        
     - name: Copy Fluent Bit config structure to /etc/fluent-bit/
       copy:
         src: config/
@@ -90,14 +84,32 @@
         directory_mode: '0755'
       notify: Restart fluent-bit
 
-    - name: Deploy main fluent-bit.conf with variables
-    template:
-      src: config/fluent-bit.conf.j2
-      dest: /etc/fluent-bit/fluent-bit.conf
-      owner: root
-      group: root
-      mode: '0644'
-    notify: Restart fluent-bit
+    - name: Deploy main fluent-bit.conf 
+      template:
+        src: config/fluent-bit.conf.j2
+        dest: /etc/fluent-bit/fluent-bit.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart fluent-bit
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: true
+
+    - name: Allow open search server in firewall
+      blockinfile:
+        path: /etc/csf/csf.allow.client
+        marker: "# {mark} test_log_aggregation_server"
+        block: |
+          # test opensearch server
+          tcp|in|d={{ fluentbit_opensearch_port }}|s={{ fluentbit_opensearch_host }}
+          tcp|out|d={{ fluentbit_opensearch_port }}|d={{ fluentbit_opensearch_host }}
+        create: yes
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Reload CSF
 
     - name: Enable and start fluent-bit
       systemd:
@@ -111,3 +123,7 @@
         systemd:
           name: fluent-bit
           state: restarted
+          
+    handlers:
+    - name: Reload CSF
+      command: csf -r
