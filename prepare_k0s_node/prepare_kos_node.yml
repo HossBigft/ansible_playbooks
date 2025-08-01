@@ -5,12 +5,6 @@
     - vars.yml
 
   tasks:
-    - name: Update & upgrade system
-      apt:
-        update_cache: yes
-        upgrade: dist
-        autoremove: yes
-
     - name: Ensure .ssh directory exists
       file:
         path: /home/{{ ansible_user }}/.ssh
@@ -26,6 +20,13 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: '0600'
+
+    - name: Update & upgrade system
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+
 
     - name: Disable swap
       shell: |
