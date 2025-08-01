@@ -31,15 +31,3 @@
       shell: |
         swapoff -a
         sed -i '/ swap / s/^/#/' /etc/fstab
-
-    - name: Upgrade Ubuntu release 
-      shell: |
-        DEBIAN_FRONTEND=noninteractive do-release-upgrade -f DistUpgradeViewNonInteractive || true
-      register: upgrade_result
-      ignore_errors: true
-
-    - name: Reboot after release upgrade
-      reboot:
-        msg: "Rebooting after Ubuntu release upgrade"
-        pre_reboot_delay: 10
-      when: upgrade_result.rc == 0
