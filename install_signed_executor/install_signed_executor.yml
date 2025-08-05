@@ -9,6 +9,9 @@
     backend_token_key_url: "CHANGE_THIS"
     backend_user_ssh_pubkey: "CHANGE_THIS"
 
+  handlers:     
+    - name: Reload CSF
+      command: csf -r
 
   tasks:
     - name: Fail if backend_token_key_url is not set
@@ -20,6 +23,12 @@
       fail:
         msg: "You must set 'backend_user_ssh_pubkey'"
       when: backend_user_ssh_pubkey == "CHANGE_THIS"
+
+    - name: Fail if serverkit_ip is not set
+      fail:
+        msg: "You must set 'serverkit_ip'"
+      when: serverkit_ip == "CHANGE_THIS"
+
     - name: Ensure user exists
       user:
         name: "{{ username }}"
@@ -58,6 +67,22 @@
     - name: Print signed executor response
       debug:
         var: init_output.stdout
+
+    - name: Allow serverkit server in firewall
+      blockinfile:
+        path: /etc/csf/csf.allow.client
+        marker: "# {mark} Adminkit backend"
+        block: |
+          # serverkit.gruzo.kz
+          tcp|in|d=22|s={{ serverkit_ip }}
+          tcp|out|d=22|d={{ serverkit_ip }}
+        create: yes
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Reload CSF
+
+
     - name: Success message
       debug:
         msg: "Setup complete on {{ inventory_hostname }}"
