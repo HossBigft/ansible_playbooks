@@ -27,10 +27,12 @@ backend ingress_http_backend
 
 
 frontend https_front
+    mode tcp
     bind *:443
     default_backend ingress_https_backend
 
 backend ingress_https_backend
+    mode tcp
     balance roundrobin
 {% for worker in groups['worker'] %}
     server {{ worker }} {{ hostvars[worker]['ansible_host'] }}:30443 check
