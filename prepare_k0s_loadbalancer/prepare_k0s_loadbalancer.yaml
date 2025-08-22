@@ -1,0 +1,35 @@
+- name: Prepare loadbalancer for k0s cluster
+  hosts: loadbalancer
+  become: true
+  vars:
+    haproxy_cfg_path: /etc/haproxy/haproxy.cfg
+
+  tasks:
+    - name: Update & upgrade system
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+
+    - name: Ensure HAProxy is installed
+      apt:
+        name: haproxy
+        state: present
+        update_cache: yes
+
+    - name: Deploy HAProxy configuration
+      template:
+        src: templates/haproxy.cfg.j2
+        dest: "{{ haproxy_cfg_path }}"
+        owner: root
+        group: root
+        mode: '0644'
+      notify:
+        - restart haproxy
+
+  handlers:
+    - name: restart haproxy
+      systemd:
+        name: haproxy
+        state: restarted
+        enabled: yes
