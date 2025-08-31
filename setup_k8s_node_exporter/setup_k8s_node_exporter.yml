@@ -1,0 +1,88 @@
+- name: Setup node_exporter for k8s node
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Get latest Node Exporter release info
+      uri:
+        url: https://api.github.com/repos/prometheus/node_exporter/releases/latest
+        return_content: yes
+      register: release
+
+    - name: Set Node Exporter version
+      set_fact:
+        node_exporter_version: "{{ release.json.tag_name | regex_replace('^v', '') }}"
+
+    - name: Detect OS
+      set_fact:
+        node_exporter_os: "{{ ansible_system | lower }}"
+        node_exporter_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' }}"
+
+    - name: Download Node Exporter tarball
+      get_url:
+        url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.{{ node_exporter_os }}-{{ node_exporter_arch }}.tar.gz"
+        dest: /tmp/node_exporter.tar.gz
+        mode: '0644'
+
+    - name: Extract Node Exporter
+      unarchive:
+        src: /tmp/node_exporter.tar.gz
+        dest: /opt/
+        remote_src: yes
+
+    - name: Create service user
+      user:
+        name: "node_exporter"
+        shell: /usr/sbin/nologin
+        groups: sudo
+        create_home: no
+
+    - name: Move Node Exporter binary
+      copy:
+        src: "/opt/node_exporter-{{ node_exporter_version }}.{{ node_exporter_os }}-{{ node_exporter_arch }}/node_exporter"
+        dest: /usr/local/bin/node_exporter
+        owner: node_exporter
+        group: node_exporter
+        mode: '0755'
+        remote_src: yes
+
+    - name: Create config directory
+      file:
+        path: /etc/node_exporter
+        state: directory
+        owner: node_exporter
+        group: node_exporter
+        mode: '0755'
+
+    - name: Deploy systemd service
+      template:
+        src: node_exporter.service.j2
+        dest: /etc/systemd/system/node_exporter.service
+        mode: '0644'
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: true
+
+    - name: Enable and start Node Exporter
+      systemd:
+        name: node_exporter
+        enabled: yes
+        state: started
+        
+    - name: Wait for Node Exporter to start
+      wait_for:
+        host: 127.0.0.1
+        port: 9100
+        timeout: 15
+
+    - name: Check Node Exporter metrics endpoint
+      uri:
+        url: http://127.0.0.1:9100/metrics
+        return_content: yes
+      register: node_exporter_check
+      failed_when: "'node_cpu_seconds_total' not in node_exporter_check.content"
+
+    - name: Print first 20 lines of Node Exporter output
+      debug:
+        msg: "{{ node_exporter_check.content.split('\n')[:20] }}"
