@@ -1,0 +1,5 @@
+fluentbit_opensearch_host: "api.opensearch.gruzo.kz"
+fluentbit_opensearch_domain: "37.140.243.227"
+fluentbit_opensearch_port: "443"                    
+fluentbit_opensearch_user: "fluentbit"  
+fluentbit_opensearch_password: "Jahfi4fieDu0iediech2"            
