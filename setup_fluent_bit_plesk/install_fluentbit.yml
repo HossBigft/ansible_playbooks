@@ -125,6 +125,19 @@
         enabled: true
         state: started
 
+    - name: Check OpenSearch accessibility 
+      uri:
+        url: "https://{{ fluentbit_opensearch_host }}:{{ fluentbit_opensearch_port }}/"
+        method: GET
+        user: fluentbit
+        password: "{{ fluentbit_opensearch_password }}"
+        validate_certs: no
+        return_content: yes
+        status_code: 
+          - 403
+          - 200  
+      register: opensearch_health
+      
     - name: Ensure fluent-bit service is running
       systemd:
         name: fluent-bit
@@ -142,16 +155,3 @@
       register: fluentbit_failed
       changed_when: false
       failed_when: fluentbit_failed.stdout == "failed"
-
-    - name: Check OpenSearch accessibility 
-      uri:
-        url: "https://{{ fluentbit_opensearch_host }}:{{ fluentbit_opensearch_port }}/"
-        method: GET
-        user: fluentbit
-        password: "{{ fluentbit_opensearch_password }}"
-        validate_certs: no
-        return_content: yes
-        status_code: 
-          - 403
-          - 200  
-      register: opensearch_health
