@@ -1,3 +1,5 @@
+fluentbit_opensearch_api
+_domain: ""
 fluentbit_opensearch_host: ""
 fluentbit_opensearch_port: ""
 fluentbit_opensearch_user: ""
