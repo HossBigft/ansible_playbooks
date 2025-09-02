@@ -42,19 +42,53 @@
           One or more required Fluent Bit vars are missing.
           Please set fluentbit_opensearch_host, fluentbit_opensearch_api_port, and fluentbit_opensearch_password.
   tasks:
-    - name: Create Fluent Bit YUM repo
-      copy:
-        dest: "{{ fluentbit_repo_file }}"
-        content: "{{ fluentbit_repo_content }}"
-        owner: root
-        group: root
-        mode: '0644'
 
-    - name: Install Fluent Bit
+    - name: Add Fluent Bit repository (RedHat)
+      yum_repository:
+        name: fluent-bit
+        description: Fluent Bit
+        baseurl: "https://packages.fluentbit.io/centos/$releasever/"
+        gpgcheck: yes
+        gpgkey: https://packages.fluentbit.io/fluentbit.key
+        enabled: yes
+      when: ansible_facts['os_family'] == 'RedHat'
+
+    - name: Install Fluent Bit (RedHat)
       yum:
         name: fluent-bit
         state: present
+      when: ansible_facts['os_family'] == 'RedHat'
 
+    - name: Add Fluent Bit GPG key
+      ansible.builtin.command: >
+        sh -c "curl -fsSL https://packages.fluentbit.io/fluentbit.key |
+              gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg"
+      args:
+        creates: /usr/share/keyrings/fluentbit-keyring.gpg
+      become: true
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: Add Fluent Bit APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/fluentbit-keyring.gpg] https://packages.fluentbit.io/ubuntu/{{ ansible_facts['distribution_release'] }} {{ ansible_facts['distribution_release'] }} main"
+        state: present
+        filename: fluent-bit
+      become: true
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: Update APT cache
+      ansible.builtin.apt:
+        update_cache: yes
+      become: true
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: Install Fluent Bit (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: fluent-bit
+        state: present
+      become: true
+      when: ansible_facts['os_family'] == 'Debian'
+      
     - name: Add Fluent Bit bin path to system-wide PATH
       copy:
         dest: /etc/profile.d/fluent-bit-path.sh
