@@ -1,6 +1,5 @@
-fluentbit_opensearch_api
-_domain: ""
-fluentbit_opensearch_host: ""
-fluentbit_opensearch_port: ""
+fluentbit_opensearch_api_domain: ""
+fluentbit_opensearch_api_ip: ""
+fluentbit_opensearch_api_port: ""
 fluentbit_opensearch_user: ""
 fluentbit_opensearch_password: "" 

@@ -34,13 +34,13 @@
     - name: Assert required Fluent Bit variables are defined
       assert:
         that:
-          - fluentbit_opensearch_host is defined
-          - fluentbit_opensearch_port is defined
+          - fluentbit_opensearch_api_domain is defined
+          - fluentbit_opensearch_api_port is defined
           - fluentbit_opensearch_user is defined
           - fluentbit_opensearch_password is defined
         fail_msg: |
           One or more required Fluent Bit vars are missing.
-          Please set fluentbit_opensearch_host, fluentbit_opensearch_port, and fluentbit_opensearch_password.
+          Please set fluentbit_opensearch_host, fluentbit_opensearch_api_port, and fluentbit_opensearch_password.
   tasks:
     - name: Create Fluent Bit YUM repo
       copy:
@@ -111,8 +111,8 @@
         marker: "# {mark} test_log_aggregation_server"
         block: |
           # test opensearch server
-          tcp|in|d={{ fluentbit_opensearch_port }}|s={{ fluentbit_opensearch_host }}
-          tcp|out|d={{ fluentbit_opensearch_port }}|d={{ fluentbit_opensearch_host }}
+          tcp|in|d={{ fluentbit_opensearch_api_port }}|s={{ fluentbit_opensearch_api_ip }}
+          tcp|out|d={{ fluentbit_opensearch_api_port }}|d={{ fluentbit_opensearch_api_ip }}
         create: yes
         owner: root
         group: root
@@ -127,7 +127,7 @@
 
     - name: Check OpenSearch accessibility 
       uri:
-        url: "https://{{ fluentbit_opensearch_api_domain }}:{{ fluentbit_opensearch_port }}/"
+        url: "https://{{ fluentbit_opensearch_api_domain }}:{{ fluentbit_opensearch_api_port }}/"
         method: GET
         user: fluentbit
         password: "{{ fluentbit_opensearch_password }}"

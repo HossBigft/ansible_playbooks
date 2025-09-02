@@ -24,8 +24,8 @@
 [OUTPUT]
     Name              opensearch
     Match             apache.access*
-    Host              {{ fluentbit_opensearch_api_domain }}
-    Port              {{ fluentbit_opensearch_port }}
+    Host              {{ fluentbit_opensearch_api_domain}}
+    Port              {{ fluentbit_opensearch_api_port }}
     HTTP_User         fluentbit
     HTTP_Passwd       {{ fluentbit_opensearch_password }}
     Suppress_Type_Name   On
@@ -36,8 +36,8 @@
 [OUTPUT]
     Name              opensearch
     Match             apache.error
-    Host              {{ fluentbit_opensearch_api_domain }}
-    Port              {{ fluentbit_opensearch_port }}
+    Host              {{ fluentbit_opensearch_api_domain}}
+    Port              {{ fluentbit_opensearch_api_port }}
     HTTP_User         fluentbit
     HTTP_Passwd       {{ fluentbit_opensearch_password }}
     Suppress_Type_Name   On
@@ -48,8 +48,8 @@
 [OUTPUT]
     Name              opensearch
     Match             proxy.access*
-    Host              {{ fluentbit_opensearch_api_domain }}
-    Port              {{ fluentbit_opensearch_port }}
+    Host              {{ fluentbit_opensearch_api_domain}}
+    Port              {{ fluentbit_opensearch_api_port }}
     HTTP_User         {{ fluentbit_opensearch_user }}
     HTTP_Passwd       {{ fluentbit_opensearch_password }}
     Suppress_Type_Name   On
@@ -60,8 +60,8 @@
 [OUTPUT]
     Name              opensearch
     Match             proxy.error
-    Host              {{ fluentbit_opensearch_api_domain }}
-    Port              {{ fluentbit_opensearch_port }}
+    Host              {{ fluentbit_opensearch_api_domain}}
+    Port              {{ fluentbit_opensearch_api_port }}
     HTTP_User         fluentbit
     HTTP_Passwd       {{ fluentbit_opensearch_password }}
     Suppress_Type_Name   On
@@ -72,8 +72,8 @@
 [OUTPUT]
     Name              opensearch
     Match             postfix
-    Host              {{ fluentbit_opensearch_api_domain }}
-    Port              {{ fluentbit_opensearch_port }}
+    Host              {{ fluentbit_opensearch_api_domain}}
+    Port              {{ fluentbit_opensearch_api_port }}
     HTTP_User         fluentbit
     HTTP_Passwd       {{ fluentbit_opensearch_password }}
     Suppress_Type_Name   On
@@ -84,8 +84,8 @@
 [OUTPUT]
     Name              opensearch
     Match             dovecot
-    Host              {{ fluentbit_opensearch_api_domain }}
-    Port              {{ fluentbit_opensearch_port }}
+    Host              {{ fluentbit_opensearch_api_domain}}
+    Port              {{ fluentbit_opensearch_api_port }}
     HTTP_User         fluentbit
     HTTP_Passwd       {{ fluentbit_opensearch_password }}
     Suppress_Type_Name   On
