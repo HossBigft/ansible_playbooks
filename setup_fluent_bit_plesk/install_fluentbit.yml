@@ -57,9 +57,10 @@
       yum:
         name: fluent-bit
         state: present
+        skip_broken: yes
       when: ansible_facts['os_family'] == 'RedHat'
 
-    - name: Add Fluent Bit GPG key
+    - name: Add Fluent Bit GPG key (Debian)
       ansible.builtin.command: >
         sh -c "curl -fsSL https://packages.fluentbit.io/fluentbit.key |
               gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg"
