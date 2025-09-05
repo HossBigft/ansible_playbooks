@@ -27,8 +27,31 @@
         upgrade: dist
         autoremove: yes
 
-
     - name: Disable swap
       shell: |
         swapoff -a
         sed -i '/ swap / s/^/#/' /etc/fstab
+        
+    - name: Ensure journald drop-in directory exists
+      ansible.builtin.file:
+        path: /etc/systemd/journald.conf.d
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Configure journald limits
+      ansible.builtin.copy:
+        dest: /etc/systemd/journald.conf.d/limits.conf
+        content: |
+          [Journal]
+          SystemMaxUse=100M
+          SystemMaxFileSize=10M
+          MaxRetentionSec=1day
+      notify: Restart journald
+
+  handlers:
+    - name: Restart journald
+      ansible.builtin.systemd:
+        name: systemd-journald
+        state: restarted
