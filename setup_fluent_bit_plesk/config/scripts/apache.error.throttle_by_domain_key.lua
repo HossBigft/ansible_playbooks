@@ -1,6 +1,6 @@
 local throttle_state = {}
 
-local RATE_LIMIT = 250 -- Max messages per window
+local RATE_LIMIT = 25 -- Max messages per window
 local WINDOW_SIZE = 60 -- Time window in seconds
 local CHECK_INTERVAL = 5 -- Only update counters every X seconds
 local THROTTLE_KEY = "domain"
