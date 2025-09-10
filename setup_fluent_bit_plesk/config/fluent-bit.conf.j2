@@ -71,13 +71,13 @@
 
 [OUTPUT]
     Name              opensearch
-    Match             postfix
+    Match             postfix.send
     Host              {{ fluentbit_opensearch_api_domain}}
     Port              {{ fluentbit_opensearch_api_port }}
     HTTP_User         fluentbit
     HTTP_Passwd       {{ fluentbit_opensearch_password }}
     Suppress_Type_Name   On
-    Index             postfix-%Y.%m.%d
+    Index             postfix.send-%Y.%m.%d
     TLS               On
     tls.verify        Off
 
@@ -90,6 +90,19 @@
     HTTP_Passwd       {{ fluentbit_opensearch_password }}
     Suppress_Type_Name   On
     Index             dovecot-%Y.%m.%d
+    TLS               On
+    tls.verify        Off
+
+
+[OUTPUT]
+    Name              opensearch
+    Match             postfix.auth
+    Host              {{ fluentbit_opensearch_api_domain}}
+    Port              {{ fluentbit_opensearch_api_port }}
+    HTTP_User         fluentbit
+    HTTP_Passwd       {{ fluentbit_opensearch_password }}
+    Suppress_Type_Name   On
+    Index             postfix.auth-%Y.%m.%d
     TLS               On
     tls.verify        Off
 
