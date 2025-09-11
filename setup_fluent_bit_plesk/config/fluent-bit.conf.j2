@@ -2,6 +2,8 @@
 @INCLUDE conf/nginx.conf
 @INCLUDE conf/postfix.conf
 @INCLUDE conf/dovecot.conf
+@INCLUDE conf/secure.conf
+
 
 [SERVICE]
     flush        1
@@ -13,6 +15,7 @@
     parsers_file parsers/postfix.parser.conf
     parsers_file parsers/nginx.parser.conf
     parsers_file parsers/apache.parser.conf
+    parsers_file parsers/secure.parser.conf
     plugins_file plugins.conf
 
     storage.metrics on
@@ -104,6 +107,19 @@
     HTTP_Passwd       {{ fluentbit_opensearch_password }}
     Suppress_Type_Name   On
     Index             postfix.auth-%Y.%m.%d
+    TLS               On
+    tls.verify        Off
+
+
+[OUTPUT]
+    Name              opensearch
+    Match             secure.sshd
+    Host              {{ fluentbit_opensearch_api_domain}}
+    Port              {{ fluentbit_opensearch_api_port }}
+    HTTP_User         fluentbit
+    HTTP_Passwd       {{ fluentbit_opensearch_password }}
+    Suppress_Type_Name   On
+    Index             secure.sshd-%Y.%m.%d
     TLS               On
     tls.verify        Off
 
