@@ -1,3 +1,4 @@
 *.ini
 vars.yml
 */vars/*.yml
+all.yaml

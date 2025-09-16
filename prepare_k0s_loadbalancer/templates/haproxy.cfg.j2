@@ -18,7 +18,10 @@ defaults
 frontend http_front
     bind *:80
     default_backend ingress_http_backend
-
+    acl allowed_ips src -f /etc/haproxy/whitelist.acl
+    # enforce whitelist
+    http-request allow if allowed_ips
+    http-request deny
 backend ingress_http_backend
     balance roundrobin
 {% for worker in groups['worker'] %}
@@ -29,6 +32,11 @@ backend ingress_http_backend
 frontend https_front
     mode tcp
     bind *:443
+
+    acl allowed_ips src -f /etc/haproxy/whitelist.acl
+    tcp-request connection reject if !allowed_ips
+    tcp-request connection accept
+
     default_backend ingress_https_backend
 
 backend ingress_https_backend

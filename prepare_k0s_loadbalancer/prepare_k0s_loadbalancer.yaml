@@ -17,6 +17,14 @@
         state: present
         update_cache: yes
 
+    - name: Deploy HAProxy whitelist
+      template:
+        src: templates/whitelist.acl.j2
+        dest: /etc/haproxy/whitelist.acl
+        owner: root
+        group: root
+        mode: '0644'
+        
     - name: Deploy HAProxy configuration
       template:
         src: templates/haproxy.cfg.j2

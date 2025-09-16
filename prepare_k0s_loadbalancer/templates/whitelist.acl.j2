@@ -1,0 +1,6 @@
+{% for entry in haproxy_whitelist %}
+# {{ entry.name }}
+{% for ip in entry.ips %}
+{{ ip }}
+{% endfor %}
+{% endfor %}
