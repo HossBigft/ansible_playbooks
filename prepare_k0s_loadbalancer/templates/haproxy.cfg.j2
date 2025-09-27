@@ -18,9 +18,17 @@ defaults
 frontend http_front
     bind *:80
     default_backend ingress_http_backend
+
     acl allowed_ips src -f /etc/haproxy/whitelist.acl
     # enforce whitelist
     http-request allow if allowed_ips
+
+    #Define ACME challenge path
+    acl acme_challenge path_beg /.well-known/acme-challenge/
+
+    # Allow ACME challenge from anywhere
+    http-request allow if acme_challenge
+
     http-request deny
 backend ingress_http_backend
     balance roundrobin
