@@ -1,0 +1,59 @@
+- name: Prepare host to be warpgate target
+  become: yes
+  strategy: free
+  hosts: warpgate_targets
+  vars:
+    username: warpgate_user
+    warpgate_user_ssh_pubkey: "CHANGE_THIS"
+
+
+  tasks:
+    - name: Fail if warpgate_user_ssh_pubkey is not set
+      fail:
+        msg: "You must set 'warpgate_user_ssh_pubkey'"
+      when: warpgate_user_ssh_pubkey | default("CHANGE_THIS") == "CHANGE_THIS"
+
+    - name: Ensure user exists
+      user:
+        name: "{{ username }}"
+        shell: /bin/bash
+        create_home: yes
+        password: '*'
+        update_password: on_create
+
+    - name: Ensure .ssh directory exists
+      file:
+        path: "/home/{{ username }}/.ssh"
+        state: directory
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: '0700'
+
+    - name: Add warpgate ssh key 
+      authorized_key:
+        user: "{{ username }}"
+        exclusive: true
+        key: "{{ warpgate_user_ssh_pubkey }}"
+
+    - name: Harden sshd config
+      ansible.builtin.copy:
+        src: ./templates/sshd_config.mozilla
+        dest: /etc/ssh/sshd_config
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Allow {{ username }} passwordless sudo
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ username }}"
+        content: "{{ username }} ALL=(ALL) NOPASSWD:ALL\n"
+        owner: root
+        group: root
+        mode: '0440'
+        validate: 'visudo -cf %s'
+
+    - name: Restart SSH
+      ansible.builtin.systemd:
+        name: ssh
+        state: restarted
+        daemon_reload: yes
