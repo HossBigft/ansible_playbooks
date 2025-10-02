@@ -1,0 +1,2 @@
+[access_targets]
+    vps ansible_host=192.0.2.10 ansible_user=root ansible_ssh_pass=your_password ansible_become_password=your_password
