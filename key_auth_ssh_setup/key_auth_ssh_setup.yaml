@@ -40,6 +40,17 @@
         group: "{{ username }}"
         mode: '0700'
 
+    # to enable add -e give_passwordless_sudo=true
+    - name: Allow {{ username }} passwordless sudo
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ username }}"
+        content: "{{ username }} ALL=(ALL) NOPASSWD:ALL\n"
+        owner: root
+        group: root
+        mode: '0440'
+        validate: 'visudo -cf %s'
+      when: give_passwordless_sudo | default(false)
+      
     - name: Add user ssh key 
       authorized_key:
         user: "{{ username }}"

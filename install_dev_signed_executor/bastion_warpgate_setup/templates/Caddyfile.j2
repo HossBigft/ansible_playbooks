@@ -1,0 +1,15 @@
+{{ warpgate_domains | join(', ') }}  {
+    reverse_proxy https://127.0.0.1:8888 {
+        header_up Host {host}
+        header_up X-Forwarded-Proto {scheme}
+
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+
+    log {
+        output file /var/log/caddy/warpgate.log
+        level INFO
+    }
+}

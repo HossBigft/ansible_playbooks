@@ -1,0 +1,84 @@
+- name: Set up restricted automation user with dispatcher binary
+  hosts: warpgate_host
+  become: yes
+  strategy: free
+  vars:
+    app_name: warpgate
+    app_url: https://github.com/warp-tech/warpgate/releases/download/v0.16.0/warpgate-v0.16.0-x86_64-linux
+
+
+  tasks:
+    - name: Download signed executor binary
+      get_url:
+        url: "{{ app_url }}"
+        dest: "/usr/bin/warpgate"
+        mode: '0700'
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        force: true
+
+    - name: Add warpgate settings
+      ansible.builtin.copy:
+        src: ./templates/warpgate.yaml
+        dest: /etc/warpgate.yaml
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Add warpgate service
+      ansible.builtin.copy:
+        src: ./templates/warpgate.service
+        dest: /etc/systemd/system/warpgate.service
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Enable and start  warpgate service
+      systemd:
+        name: warpgate
+        enabled: true
+        state: started
+
+    - name: Install required packages
+      apt:
+        name:
+          - debian-keyring
+          - debian-archive-keyring
+          - apt-transport-https
+          - curl
+        state: present
+        update_cache: yes
+
+    - name: Download Caddy GPG key
+      get_url:
+        url: "https://dl.cloudsmith.io/public/caddy/stable/gpg.key"
+        dest: "/usr/share/keyrings/caddy-stable-archive-keyring.gpg"
+        mode: "0644"
+
+    - name: Add Caddy APT repository
+      get_url:
+        url: "https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt"
+        dest: "/etc/apt/sources.list.d/caddy-stable.list"
+        mode: "0644"
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Caddy
+      apt:
+        name: caddy
+        state: present
+
+  - name: Deploy Caddyfile for Warpgate
+    template:
+      src: templates/Caddyfile.j2
+      dest: /etc/caddy/Caddyfile
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Reload Caddy
+    systemd:
+      name: caddy
+      state: reloaded

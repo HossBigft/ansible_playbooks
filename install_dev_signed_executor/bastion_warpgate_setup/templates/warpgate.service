@@ -1,0 +1,13 @@
+[Unit]
+Description=Warpgate
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=notify
+Restart=always
+RestartSec=5
+ExecStart=/usr/bin/warpgate --config /etc/warpgate.yaml run
+
+[Install]
+WantedBy=multi-user.target
