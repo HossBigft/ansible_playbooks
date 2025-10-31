@@ -140,12 +140,12 @@
       systemd:
         daemon_reload: true
 
-    - name: Allow open search server in firewall
+    - name: Allow opensearch server in firewall
       blockinfile:
         path: /etc/csf/csf.allow.client
-        marker: "# {mark} test_log_aggregation_server"
+        marker: "# {mark} opensearch_cluster_entrypoint"
         block: |
-          # test opensearch server
+          # opensearch_cluster_entrypoint
           tcp|in|d={{ fluentbit_opensearch_api_port }}|s={{ fluentbit_opensearch_api_ip }}
           tcp|out|d={{ fluentbit_opensearch_api_port }}|d={{ fluentbit_opensearch_api_ip }}
         create: yes
