@@ -1,0 +1,4 @@
+to install docker
+```bash
+ansible-playbook -i localhost, -c local /root/docker-install.yml
+```
