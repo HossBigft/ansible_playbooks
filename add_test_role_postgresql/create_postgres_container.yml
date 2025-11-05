@@ -1,0 +1,30 @@
+- name: Deploy PostgreSQL
+  hosts: all
+  vars:
+    pg_container_name: pgsql
+    pg_image: postgres:latest
+    pg_user: postgres
+    pg_port: 5432
+
+  tasks:
+    - name: Generate random password
+      ansible.builtin.set_fact:
+        pg_password: "{{ lookup('password', '/dev/null length=16 chars=ascii_letters,digits') }}"
+
+    - name: Spin up a PostgreSQL container
+      community.docker.docker_container:
+        name: "{{ pg_container_name }}"
+        image: "{{ pg_image }}"
+        state: started
+        restart_policy: always
+        published_ports:
+          - "{{ pg_port }}:5432"
+        env:
+          POSTGRES_USER: "{{ pg_user }}"
+          POSTGRES_PASSWORD: "{{ pg_password }}"
+        volumes:
+          - pg_data:/var/lib/postgresql/data
+
+    - name: Show generated password
+      ansible.builtin.debug:
+        msg: "PostgreSQL password: {{ pg_password }}"
