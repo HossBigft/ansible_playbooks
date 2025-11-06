@@ -23,7 +23,7 @@
           POSTGRES_USER: "{{ pg_user }}"
           POSTGRES_PASSWORD: "{{ pg_password }}"
         volumes:
-          - pg_data:/var/lib/postgresql/data
+          - pg_data:/var/lib/postgresql
 
     - name: Show generated password
       ansible.builtin.debug:
