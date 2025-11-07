@@ -1,0 +1,9 @@
+- name: Setup PostgreSQL read-only role
+  hosts: dbservers
+  become: true
+  roles:
+    - role: create_testuser_postgres
+      vars:
+        pg_admin_password: "bUtzQXCEbmlBXNul"
+        db_role: "testuser1"
+        db_role_password: "changeme"

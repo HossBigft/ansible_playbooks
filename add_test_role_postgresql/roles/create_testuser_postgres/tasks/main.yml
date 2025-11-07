@@ -1,0 +1,68 @@
+- name: Ensure test database exists
+  community.postgresql.postgresql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_host: "{{ pg_host }}"
+    port: "{{ pg_port }}"
+    login_user: "{{ pg_admin_user }}"
+    login_password: "{{ pg_admin_password }}"
+
+- name: Ensure read-only role exists
+  community.postgresql.postgresql_user:
+    name: "{{ db_role }}"
+    password: "{{ db_role_password }}"
+    role_attr_flags: "LOGIN"
+    state: present
+    login_host: "{{ pg_host }}"
+    port: "{{ pg_port }}"
+    login_user: "{{ pg_admin_user }}"
+    login_password: "{{ pg_admin_password }}"
+
+- name: Grant CONNECT on database
+  community.postgresql.postgresql_privs:
+    db: "{{ db_name }}"
+    role: "{{ db_role }}"
+    type: database
+    privs: connect
+    state: present
+    login_host: "{{ pg_host }}"
+    port: "{{ pg_port }}"
+    login_user: "{{ pg_admin_user }}"
+    login_password: "{{ pg_admin_password }}"
+   
+- name: Ensure user has USAGE on all schemas
+  community.postgresql.postgresql_privs:
+    db: "{{ db_name }}"
+    role: "{{ pg_admin_user }}"
+    objs: ALL_IN_SCHEMA
+    type: schema
+    privs: USAGE
+    state: present
+
+- name: Grant SELECT on all existing tables
+  community.postgresql.postgresql_privs:
+    db: "{{ db_name }}"
+    role: "{{ db_role }}"
+    type: table
+    objs: ALL_IN_SCHEMA
+    privs: select
+    state: present
+    login_host: "{{ pg_host }}"
+    port: "{{ pg_port }}"
+    login_user: "{{ pg_admin_user }}"
+    login_password: "{{ pg_admin_password }}"
+
+- name: Set default privileges for future tables
+  community.postgresql.postgresql_privs:
+    db: "{{ db_name }}"
+    role: "{{ db_role }}"
+    type: default_privs
+    objs: tables
+    schema: public
+    privs: select
+    state: present
+    grant_option: no
+    login_host: "{{ pg_host }}"
+    port: "{{ pg_port }}"
+    login_user: "{{ pg_admin_user }}"
+    login_password: "{{ pg_admin_password }}"

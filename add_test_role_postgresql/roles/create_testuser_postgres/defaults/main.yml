@@ -1,0 +1,8 @@
+pg_host: "127.0.0.1"
+pg_port: 5432
+pg_admin_user: "postgres"
+pg_admin_password: "bUtzQXCEbmlBXNul"
+
+db_name: "database1"
+db_role: "testuser1"
+db_role_password: "changeme"
