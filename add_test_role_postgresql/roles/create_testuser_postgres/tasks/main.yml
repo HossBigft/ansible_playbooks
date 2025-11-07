@@ -29,15 +29,34 @@
     port: "{{ pg_port }}"
     login_user: "{{ pg_admin_user }}"
     login_password: "{{ pg_admin_password }}"
-   
+
+- name: Get list of user schemas
+  community.postgresql.postgresql_query:
+    db: "{{ db_name }}"
+    login_host: "{{ pg_host }}"
+    login_port: "{{ pg_port  }}"
+    login_user: "{{ pg_admin_user }}"
+    login_password: "{{ pg_admin_password }}"
+    query: |
+      SELECT nspname 
+      FROM pg_namespace 
+      WHERE nspname NOT LIKE 'pg_%' 
+        AND nspname != 'information_schema'
+  register: schema_list
+
 - name: Ensure user has USAGE on all schemas
   community.postgresql.postgresql_privs:
     db: "{{ db_name }}"
+    login_host: "{{ pg_host }}"
+    login_port: "{{ pg_port }}"
+    login_user: "{{ pg_admin_user }}"
+    login_password: "{{ pg_admin_password }}"
     role: "{{ pg_admin_user }}"
-    objs: ALL_IN_SCHEMA
+    objs: "{{ item.nspname }}"
     type: schema
     privs: USAGE
     state: present
+  loop: "{{ schema_list.query_result }}"
 
 - name: Grant SELECT on all existing tables
   community.postgresql.postgresql_privs:
